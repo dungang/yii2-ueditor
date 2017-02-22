@@ -4,7 +4,15 @@
 
 ## 使用方法
 
-- 配置编辑器模块 config/web.php
+> 下载验证码包
+
+```
+
+composer require dungang/geetest
+
+```
+
+> 配置编辑器模块 config/web.php
 
 
 ```
@@ -21,7 +29,7 @@
     
 ```
 
-- 配置widget
+> 配置widget
 
 ```
 
@@ -34,7 +42,7 @@
 
 ```
 
-- ToolBar Options
+> ToolBar Options
 
 所有的按钮选项
 
@@ -54,7 +62,7 @@
             
 ```
 
-- 默认按钮选项
+> 默认按钮选项
 
 ```
 'fullscreen', 'source', 'undo', 'redo', '|',
@@ -67,7 +75,7 @@
             
 ```
 
-- 按钮选项说明
+> 按钮选项说明
 
 'anchor':'锚点', 'undo':'撤销', 'redo':'重做', 'bold':'加粗', 'indent':'首行缩进', 'snapscreen':'截图',
 
