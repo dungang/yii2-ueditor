@@ -1,8 +1,8 @@
 # 百度编辑器 uEditor for Yii2
 
+![编辑器效果图](assets/images/ueditorforyii2.png)
 
 ## 使用方法
-
 
 - 配置编辑器模块 config/web.php
 
