@@ -1,6 +1,7 @@
 <?php
 namespace dungang\ueditor\actions;
 
+use dungang\ueditor\components\UEditorEvent;
 use Yii;
 use yii\base\Action;
 use yii\helpers\ArrayHelper;
@@ -8,6 +9,9 @@ use dungang\ueditor\components\Uploader;
 
 class UEditorAction extends Action
 {
+    const EVENT_BEFORE_UPLOAD = 'beforeUpload';
+    const EVENT_AFTER_UPLOAD = 'afterUpload';
+
     /**
      * @var array
      */
@@ -15,8 +19,14 @@ class UEditorAction extends Action
 
     protected $fileRoot;
 
+    /**
+     * @var UEditorEvent
+     */
+    protected $event;
+
     public function init()
     {
+        $this->event = new UEditorEvent();
         //close csrf
         Yii::$app->request->enableCsrfValidation = false;
         //默认设置
@@ -128,7 +138,12 @@ class UEditorAction extends Action
         }
         /* 生成上传实例对象并完成上传 */
         $config['fileRoot'] = $this->fileRoot;
+        $this->event->fileInfo = [];
+        $this->trigger(self::EVENT_BEFORE_UPLOAD,$this->event);
         $up = new Uploader($fieldName, $config, $base64);
+        $fileInfo = $up->getFileInfo();
+        $this->event->fileInfo = $fileInfo;
+        $this->trigger(self::EVENT_AFTER_UPLOAD,$this->event);
         /**
          * 得到上传文件所对应的各个参数,数组结构
          * array(
@@ -142,7 +157,7 @@ class UEditorAction extends Action
          */
 
         /* 返回数据 */
-        return json_encode($up->getFileInfo());
+        return json_encode($fileInfo);
     }
 
     /**
@@ -225,8 +240,17 @@ class UEditorAction extends Action
             $source = $_GET[$fieldName];
         }
         foreach ($source as $imgUrl) {
+            $this->event->fileInfo = [];
+
+            $this->trigger(self::EVENT_BEFORE_UPLOAD,$this->event);
+
             $item = new Uploader($imgUrl, $config, "remote");
+
             $info = $item->getFileInfo();
+            $this->event->fileInfo = $info;
+            $this->trigger(self::EVENT_AFTER_UPLOAD,$this->event);
+
+
             array_push($list, array(
                 "state" => $info["state"],
                 "url" => $info["url"],
