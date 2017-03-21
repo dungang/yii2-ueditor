@@ -23,7 +23,7 @@ class Module extends \yii\base\Module
      */
     public function init()
     {
-        $basePath = \Yii::$app->request->getBaseUrl() . '/editor';
+        $basePath = \Yii::$app->request->getBaseUrl();
         $config = [
             "imageUrlPrefix"=> $basePath,//图片访问路径前缀
             "imagePathFormat" => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}", //上传保存路径
