@@ -8,7 +8,7 @@
 
 ```
 
-composer require dungang/geetest
+composer require dungang/yii2-geetest
 
 ```
 
