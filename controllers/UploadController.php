@@ -37,7 +37,6 @@ class UploadController extends Controller
         return [
             'index' => [
                 'class' => 'dungang\ueditor\actions\UEditorAction',
-                'config' => $this->module->config,
             ]
         ];
     }

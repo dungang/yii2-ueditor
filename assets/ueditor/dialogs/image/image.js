@@ -873,9 +873,18 @@
                             var json = isJsonp ? r:eval('(' + r.responseText + ')');
                             if (json.state == 'SUCCESS') {
                                 _this.pushData(json.list);
-                                _this.listIndex = parseInt(json.start) + parseInt(json.list.length);
-                                if(_this.listIndex >= json.total) {
-                                    _this.listEnd = true;
+                                if (json.total) {
+                                    _this.listIndex = parseInt(json.start) + parseInt(json.list.length);
+                                    if(_this.listIndex >= json.total) {
+                                        _this.listEnd = true;
+                                    }
+                                } else {
+                                    _this.listIndex = json.start;
+                                    if (json.start == 'undefined'||
+                                        json.start == null ||
+                                        json.start=='') {
+                                        _this.listEnd = true;
+                                    }
                                 }
                                 _this.isLoadingData = false;
                             }

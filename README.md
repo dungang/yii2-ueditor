@@ -1,5 +1,10 @@
 # 百度编辑器 uEditor for Yii2
 
+ - 对百度的编辑器的部分不常用功能舍弃（比如 抓取远程图片，涂鸦等功能）
+ - 修改在线图片js，支持阿里云oss，七牛存储的简单在线管理
+ - 文件上传的驱动放弃源生代码，替换为[dungang/yii2-file-storage](https://github.com/dungang/yii2-file-storage)
+ - 放弃自定义文件存储路径，交给 [dungang/yii2-file-storage](https://github.com/dungang/yii2-file-storage) 管理
+ 
 ![编辑器效果图](assets/images/ueditorforyii2.png)
 
 ## 使用方法
@@ -8,7 +13,7 @@
 
 ```
 
-composer require dungang/yii2-geetest
+composer require dungang/yii2-ueditor
 
 ```
 
@@ -18,13 +23,7 @@ composer require dungang/yii2-geetest
 ```
 
 'ueditor'=>[
-    'class'=>'dungang\ueditor\Module',
-//            'config'=>[
-//                "imageUrlPrefix"=> 'basePath',//(可选)图片访问路径前缀
-//                "imagePathFormat" => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}", //(可选)上传保存路径
-//                "imageManagerUrlPrefix"=> 'basePath',//(可选)
-//                "fileManagerUrlPrefix"=> 'basePath',//(可选)文件管理路径前缀
-//            ]
+    'class'=>'dungang\ueditor\Module'
 ],
     
 ```

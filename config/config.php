@@ -23,7 +23,7 @@ return [
     /* 插入的图片浮动方式 */
     "imageUrlPrefix"          => "",
     /* 图片访问路径前缀 */
-    "imagePathFormat"         => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"imagePathFormat"         => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     /* {filename} 会替换成原文件名,配置这项需要注意中文乱码问题 */
     /* {rand:6} 会替换成随机数,后面的数字是随机数的位数 */
@@ -43,7 +43,7 @@ return [
     /* 执行上传涂鸦的action名称 */
     "scrawlFieldName"         => "upfile",
     /* 提交的图片表单名称 */
-    "scrawlPathFormat"        => "/ueditor/php/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"scrawlPathFormat"        => "/ueditor/php/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     "scrawlMaxSize"           => 2048000,
     /* 上传大小限制，单位B */
@@ -53,7 +53,7 @@ return [
     /* 截图工具上传 */
     "snapscreenActionName"    => "uploadimage",
     /* 执行上传截图的action名称 */
-    "snapscreenPathFormat"    => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"snapscreenPathFormat"    => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     "snapscreenUrlPrefix"     => "",
     /* 图片访问路径前缀 */
@@ -70,7 +70,7 @@ return [
     /* 执行抓取远程图片的action名称 */
     "catcherFieldName"        => "source",
     /* 提交的图片列表表单名称 */
-    "catcherPathFormat"       => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"catcherPathFormat"       => "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     "catcherUrlPrefix"        => "",
     /* 图片访问路径前缀 */
@@ -90,7 +90,7 @@ return [
     /* 执行上传视频的action名称 */
     "videoFieldName"          => "upfile",
     /* 提交的视频表单名称 */
-    "videoPathFormat"         => "/upload/video/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"videoPathFormat"         => "/upload/video/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     "videoUrlPrefix"          => "",
     /* 视频访问路径前缀 */
@@ -122,7 +122,7 @@ return [
     /* controller里,执行上传视频的action名称 */
     "fileFieldName"           => "upfile",
     /* 提交的文件表单名称 */
-    "filePathFormat"          => "/upload/file/{yyyy}{mm}{dd}/{time}{rand:6}",
+    //"filePathFormat"          => "/upload/file/{yyyy}{mm}{dd}/{time}{rand:6}",
     /* 上传保存路径,可以自定义保存路径和文件名格式 */
     "fileUrlPrefix"           => "",
     /* 文件访问路径前缀 */
@@ -175,7 +175,7 @@ return [
     /* 列出指定目录下的图片 */
     "imageManagerActionName"  => "listimage",
     /* 执行图片管理的action名称 */
-    "imageManagerListPath"    => "/upload/image/",
+    //"imageManagerListPath"    => "/upload/image/",
     /* 指定要列出图片的目录 */
     "imageManagerListSize"    => 20,
     /* 每次列出文件数量 */
@@ -195,7 +195,7 @@ return [
     /* 列出指定目录下的文件 */
     "fileManagerActionName"   => "listfile",
     /* 执行文件管理的action名称 */
-    "fileManagerListPath"     => "/upload/file/",
+    //"fileManagerListPath"     => "/upload/file/",
     /* 指定要列出文件的目录 */
     "fileManagerUrlPrefix"    => "",
     /* 文件访问路径前缀 */

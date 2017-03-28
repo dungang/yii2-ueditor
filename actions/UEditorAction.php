@@ -1,32 +1,22 @@
 <?php
 namespace dungang\ueditor\actions;
 
-use dungang\ueditor\components\UEditorEvent;
 use Yii;
 use yii\base\Action;
 use yii\helpers\ArrayHelper;
-use dungang\ueditor\components\Uploader;
+use dungang\storage\ActionTrait;
 
 class UEditorAction extends Action
 {
-    const EVENT_BEFORE_UPLOAD = 'beforeUpload';
-    const EVENT_AFTER_UPLOAD = 'afterUpload';
+    use ActionTrait;
 
     /**
      * @var array
      */
     public $config = [];
 
-    protected $fileRoot;
-
-    /**
-     * @var UEditorEvent
-     */
-    protected $event;
-
     public function init()
     {
-        $this->event = new UEditorEvent();
         //close csrf
         Yii::$app->request->enableCsrfValidation = false;
         //默认设置
@@ -34,7 +24,6 @@ class UEditorAction extends Action
         //load config file
         $this->config = ArrayHelper::merge($_config, $this->config);
 
-        $this->fileRoot = $_SERVER['DOCUMENT_ROOT'] .  $this->config["imageUrlPrefix"];
         parent::init();
     }
 
@@ -48,30 +37,20 @@ class UEditorAction extends Action
             case 'config':
                 $result = json_encode($this->config);
                 break;
-
             /* 上传图片 */
             case 'uploadimage':
-                /* 上传涂鸦 */
-            case 'uploadscrawl':
                 /* 上传视频 */
             case 'uploadvideo':
                 /* 上传文件 */
             case 'uploadfile':
                 $result = $this->actionUpload();
                 break;
-
             /* 列出图片 */
             case 'listimage':
                 /* 列出文件 */
             case 'listfile':
                 $result = $this->actionList();
                 break;
-
-            /* 抓取远程文件 */
-            case 'catchimage':
-                $result = $this->actionCrawler();
-                break;
-
             default:
                 $result = json_encode(array(
                     'state' => '请求地址出错'
@@ -81,9 +60,9 @@ class UEditorAction extends Action
         /* 输出结果 */
         if (isset($_GET["callback"])) {
             if (preg_match("/^[\w_]+$/", $_GET["callback"])) {
-                return  htmlspecialchars($_GET["callback"]) . '(' . $result . ')';
+                return htmlspecialchars($_GET["callback"]) . '(' . $result . ')';
             } else {
-                return  json_encode(array(
+                return json_encode(array(
                     'state' => 'callback参数不合法'
                 ));
             }
@@ -92,72 +71,36 @@ class UEditorAction extends Action
         }
     }
 
+
     /**
      * 上传
      * @return string
      */
     protected function actionUpload()
     {
-        $base64 = "upload";
+        $post = \Yii::$app->request->post();
+        $this->instanceDriver($post);
         switch (htmlspecialchars($_GET['action'])) {
             case 'uploadimage':
-                $config = array(
-                    "pathFormat" => $this->config['imagePathFormat'],
-                    "maxSize" => $this->config['imageMaxSize'],
-                    "allowFiles" => $this->config['imageAllowFiles']
-                );
-                $fieldName = $this->config['imageFieldName'];
-                break;
-            case 'uploadscrawl':
-                $config = array(
-                    "pathFormat" => $this->config['scrawlPathFormat'],
-                    "maxSize" => $this->config['scrawlMaxSize'],
-                    "allowFiles" => $this->config['scrawlAllowFiles'],
-                    "oriName" => "scrawl.png"
-                );
-                $fieldName = $this->config['scrawlFieldName'];
-                $base64 = "base64";
+                $this->driverInstance->saveDir .= DIRECTORY_SEPARATOR . 'image';
+                $this->driverInstance->maxFileSize = $this->config['imageMaxSize'];
+                $this->driverInstance->accept = $this->reAccept($this->config['imageAllowFiles']);
+                $this->driverInstance->fieldName = $this->config['imageFieldName'];
                 break;
             case 'uploadvideo':
-                $config = array(
-                    "pathFormat" => $this->config['videoPathFormat'],
-                    "maxSize" => $this->config['videoMaxSize'],
-                    "allowFiles" => $this->config['videoAllowFiles']
-                );
-                $fieldName = $this->config['videoFieldName'];
+                $this->driverInstance->saveDir .= DIRECTORY_SEPARATOR . 'video';
+                $this->driverInstance->maxFileSize = $this->config['videoMaxSize'];
+                $this->driverInstance->accept = $this->reAccept($this->config['videoAllowFiles']);
+                $this->driverInstance->fieldName = $this->config['videoFieldName'];
                 break;
-            case 'uploadfile':
             default:
-                $config = array(
-                    "pathFormat" => $this->config['filePathFormat'],
-                    "maxSize" => $this->config['fileMaxSize'],
-                    "allowFiles" => $this->config['fileAllowFiles']
-                );
-                $fieldName = $this->config['fileFieldName'];
-                break;
+                $this->driverInstance->saveDir .= DIRECTORY_SEPARATOR . 'file';
+                $this->driverInstance->maxFileSize = $this->config['fileMaxSize'];
+                $this->driverInstance->accept = $this->reAccept($this->config['fileAllowFiles']);
+                $this->driverInstance->fieldName = $this->config['fileFieldName'];
         }
-        /* 生成上传实例对象并完成上传 */
-        $config['fileRoot'] = $this->fileRoot;
-        $this->event->fileInfo = [];
-        $this->trigger(self::EVENT_BEFORE_UPLOAD,$this->event);
-        $up = new Uploader($fieldName, $config, $base64);
-        $fileInfo = $up->getFileInfo();
-        $this->event->fileInfo = $fileInfo;
-        $this->trigger(self::EVENT_AFTER_UPLOAD,$this->event);
-        /**
-         * 得到上传文件所对应的各个参数,数组结构
-         * array(
-         *     "state" => "",          //上传状态，上传成功时必须返回"SUCCESS"
-         *     "url" => "",            //返回的地址
-         *     "title" => "",          //新文件名
-         *     "original" => "",       //原始文件名
-         *     "type" => ""            //文件类型
-         *     "size" => "",           //文件大小
-         * )
-         */
-
-        /* 返回数据 */
-        return json_encode($fileInfo);
+        $rst = $this->driverInstance->save();
+        return $this->response($rst);
     }
 
     /**
@@ -166,135 +109,86 @@ class UEditorAction extends Action
      */
     protected function actionList()
     {
+        $post = \Yii::$app->request->post();
+        $this->instanceDriver($post);
         /* 判断类型 */
         switch ($_GET['action']) {
             /* 列出文件 */
             case 'listfile':
-                $allowFiles = $this->config['fileManagerAllowFiles'];
-                $listSize = $this->config['fileManagerListSize'];
-                $path = $this->config['fileManagerListPath'];
+                $this->driverInstance->saveDir .= DIRECTORY_SEPARATOR . 'file';
+                $this->driverInstance->accept = $this->reAccept($this->config['fileManagerAllowFiles']);
                 break;
             /* 列出图片 */
-            case 'listimage':
             default:
-                $allowFiles = $this->config['imageManagerAllowFiles'];
-                $listSize = $this->config['imageManagerListSize'];
-                $path = $this->config['imageManagerListPath'];
+                $this->driverInstance->saveDir .= DIRECTORY_SEPARATOR . 'image';
+                $this->driverInstance->accept = $this->reAccept($this->config['imageManagerAllowFiles']);
         }
-        $allowFiles = substr(str_replace(".", "|", join("", $allowFiles)), 1);
 
         /* 获取参数 */
-        $size = isset($_GET['size']) ? htmlspecialchars($_GET['size']) : $listSize;
+        $size = isset($_GET['size']) ? htmlspecialchars($_GET['size']) : 10;
         $start = isset($_GET['start']) ? htmlspecialchars($_GET['start']) : 0;
-        $end = (int)$start + (int)$size;
-        /* 获取文件列表 */
-        $path = $this->fileRoot . (substr($path, 0, 1) == "/" ? "" : "/") . $path;
-        $files = $this->getFiles($path, $allowFiles);
-        if (!count($files)) {
-            return json_encode(array(
-                "state" => "no match file",
-                "list" => array(),
-                "start" => $start,
-                "total" => count($files)
-            ));
-        }
-
-        /* 获取指定范围的列表 */
-        $len = count($files);
-        for ($i = min($end, $len) - 1, $list = array(); $i < $len && $i >= 0 && $i >= $start; $i--) {
-            $list[] = $files[$i];
-        }
-
-
-        /* 返回数据 */
-        $result = json_encode(array(
-            "state" => "SUCCESS",
-            "list" => $list,
-            "start" => $start,
-            "total" => count($files)
-        ));
-
-        return $result;
-    }
-
-    /**
-     * 抓取远程图片
-     * @return string
-     */
-    protected function actionCrawler()
-    {
-        /* 上传配置 */
-        $config = array(
-            "pathFormat" => $this->config['catcherPathFormat'],
-            "maxSize" => $this->config['catcherMaxSize'],
-            "allowFiles" => $this->config['catcherAllowFiles'],
-            "oriName" => "remote.png"
-        );
-        $fieldName = $this->config['catcherFieldName'];
-
-        /* 抓取远程图片 */
-        $list = array();
-        if (isset($_POST[$fieldName])) {
-            $source = $_POST[$fieldName];
+        $result = $this->driverInstance->listFiles($start, $size);
+        if ($result['code'] == 0) {
+            $result['state'] = 'SUCCESS';
+            $result['list'] = array_map(function ($val) {
+                return [
+                    'url'=>$this->formatListItemUrl($val)
+                ];
+            }, $result['list']);
         } else {
-            $source = $_GET[$fieldName];
+            $result['state'] = $result['message'];
         }
-        foreach ($source as $imgUrl) {
-            $this->event->fileInfo = [];
-
-            $this->trigger(self::EVENT_BEFORE_UPLOAD,$this->event);
-
-            $item = new Uploader($imgUrl, $config, "remote");
-
-            $info = $item->getFileInfo();
-            $this->event->fileInfo = $info;
-            $this->trigger(self::EVENT_AFTER_UPLOAD,$this->event);
-
-
-            array_push($list, array(
-                "state" => $info["state"],
-                "url" => $info["url"],
-                "size" => $info["size"],
-                "title" => htmlspecialchars($info["title"]),
-                "original" => htmlspecialchars($info["original"]),
-                "source" => htmlspecialchars($imgUrl)
-            ));
-        }
-
-        /* 返回抓取数据 */
-        return json_encode(array(
-            'state' => count($list) ? 'SUCCESS' : 'ERROR',
-            'list' => $list
-        ));
+        return json_encode($result);
     }
 
     /**
-     * 遍历获取目录下的指定类型的文件
-     * @param $path
-     * @param $allowFiles
-     * @param array $files
-     * @return array|null
+     * 获取当前上传成功文件的各项信息
+     * @return array
      */
-    protected function getFiles($path, $allowFiles, &$files = array())
+    public function response($rst)
     {
-        if (!is_dir($path)) return null;
-        if (substr($path, strlen($path) - 1) != '/') $path .= '/';
-        $handle = opendir($path);
-        while (false !== ($file = readdir($handle))) {
-            if ($file != '.' && $file != '..') {
-                $path2 = $path . $file;
-                if (is_dir($path2)) {
-                    $this->getFiles($path2, $allowFiles, $files);
-                } else {
-                    if (preg_match("/\.(" . $allowFiles . ")$/i", $file)) {
-                        $files[] = array(
-                            'url' => substr($path2, strlen($this->fileRoot)),
-                            'mtime' => filemtime($path2)
-                        );
-                    }
-                }
-            }
+        $result = [];
+        if (isset($rst['object'])) {
+            /* @var $object \dungang\storage\File */
+            $object = $rst['object'];
+            $result['url'] = $this->formatUrl($object->url);
+            $result['title'] = $object->newName;
+            $result['original'] = $object->name;
+            $result['type'] = '.' . $object->extension;
+            $result['size'] = $object->size;
         }
-        return $files;
+        if ($rst['code'] == 0) {
+            $result['state'] = 'SUCCESS';
+        } else {
+            $result['state'] = $rst['message'];
+        }
+
+        return json_encode($result);
+    }
+
+    protected function formatUrl($url){
+        if( strtolower(substr($url,0,4)) == 'http' || substr($url,0,2) == '//') {
+            return $url;
+        } else {
+            return Yii::$app->request->baseUrl . '/' . $url;
+        }
+    }
+
+    protected function formatListItemUrl($val)
+    {
+        if (isset($val['url'])) {
+            return $val['url'];
+        } else if( isset($val['object'])){
+            return $this->formatUrl($val['object']);
+        } else {
+            return '';
+        }
+    }
+
+    public function reAccept($allow)
+    {
+        return array_map(function ($val) {
+            return ltrim($val, '.');
+        }, $allow);
     }
 }
