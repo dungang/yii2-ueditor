@@ -104,6 +104,13 @@
             }
 
             if(list) {
+                if (Array.isArray(list)) {
+                    for(var i = 0; i<list.length; i++) {
+                        list[i].class="ueditor-insert-img";
+                    }
+                } else {
+                    list.class='ueditor-insert-img';
+                }
                 editor.execCommand('insertimage', list);
                 remote && editor.fireEvent("catchRemoteImage");
             }
