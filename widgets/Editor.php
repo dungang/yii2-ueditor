@@ -19,6 +19,8 @@ use yii\widgets\InputWidget;
 
 class Editor  extends InputWidget
 {
+    public $serverUrl = ['/ueditor/upload'];
+
     //配置选项，参阅Ueditor官网文档(定制菜单等)
     public $clientOptions = [];
 
@@ -31,7 +33,7 @@ class Editor  extends InputWidget
     {
         $this->id = $this->hasModel() ? Html::getInputId($this->model, $this->attribute) : $this->id;
         $options = [
-            'serverUrl' => Url::to(['/ueditor/upload']),
+            'serverUrl' => Url::to($this->serverUrl),
             'initialFrameWidth' => '100%',
             'initialFrameHeight' => '400',
             'lang' => (strtolower(Yii::$app->language) == 'en-us') ? 'en' : 'zh-cn',
@@ -66,9 +68,10 @@ class Editor  extends InputWidget
      */
     protected function registerClientScript()
     {
-        UEditorAsset::register($this->view);
+        $assets = UEditorAsset::register($this->view);
+        $this->clientOptions['UEDITOR_HOME_URL'] = $assets->baseUrl.'/';
         $clientOptions = Json::encode($this->clientOptions);
-        $script = "UE.getEditor('" . $this->id . "', " . $clientOptions . ")";
+        $script = "UE.delEditor('" . $this->id . "');UE.getEditor('" . $this->id . "', " . $clientOptions . ")";
         $this->view->registerJs($script, View::POS_READY);
     }
 }
